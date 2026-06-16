@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy Policy — PromptShot</title>
+<meta name="robots" content="index,follow" />
+<link rel="icon" type="image/png" href="icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0b0c0f;--panel:#15171d;--line:#23262f;--line2:#2c303a;--text:#e9ebf0;--muted:#9aa0ad;--accent:#6ee7b7}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Geist",-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:720px;margin:0 auto;padding:0 24px}
+  nav{border-bottom:1px solid var(--line)}
+  .nav-in{height:62px;display:flex;align-items:center;gap:10px;font-weight:600}
+  .logo{width:28px;height:28px;border-radius:7px}
+  header{padding:54px 0 18px}
+  h1{font-size:34px;letter-spacing:-.03em;margin:0 0 8px;font-weight:600}
+  .eff{color:var(--muted);font-size:14px}
+  main{padding:8px 0 80px}
+  h2{font-size:19px;letter-spacing:-.01em;margin:34px 0 8px;font-weight:600}
+  p{color:#c7cad2;margin:0 0 12px}
+  .lead{font-size:17px;color:var(--text)}
+  ul{color:#c7cad2;padding-left:20px}
+  li{margin:6px 0}
+  code{font-family:"Geist Mono",monospace;font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--accent)}
+  .panel{background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:20px 22px;margin:20px 0}
+  footer{border-top:1px solid var(--line);padding:26px 0;color:#6b7280;font-size:13px}
+  .footlinks{display:flex;gap:18px}
+</style>
+</head>
+<body>
+<nav><div class="wrap nav-in"><img class="logo" src="icon.png" alt="" /> PromptShot</div></nav>
+
+<header class="wrap">
+  <h1>Privacy Policy</h1>
+  <div class="eff mono">Effective June 15, 2026</div>
+</header>
+
+<main class="wrap">
+  <p class="lead">PromptShot is built to do its job without knowing anything about you. It has no servers, no accounts, and no analytics. The short version: nothing you do in PromptShot leaves your computer.</p>
+
+  <div class="panel">
+    <strong>What we collect: nothing.</strong>
+    <p style="margin:8px 0 0">No personal data, no usage tracking, no telemetry, no cookies. There is no PromptShot account and no backend to send data to.</p>
+  </div>
+
+  <h2>Your screenshots</h2>
+  <p>When you capture a page, the screenshot is saved as a file on your own device, inside a single <code>agent-shots</code> folder in your Downloads. The file path is placed on your clipboard so you can paste it into your coding tool. Screenshots are never uploaded, transmitted, or seen by us or anyone else. Older shots are deleted automatically so the folder stays tidy.</p>
+
+  <h2>Permissions, and why</h2>
+  <ul>
+    <li><code>activeTab</code> — lets PromptShot read the current tab only at the moment you click it. It has no standing access to your browsing.</li>
+    <li><code>scripting</code> — scrolls and stitches the page into one full-page image, then restores it.</li>
+    <li><code>downloads</code> — saves the PNG and reads back its file path to copy to your clipboard.</li>
+    <li><code>storage</code> — remembers your settings and the handful of recent shots, locally.</li>
+  </ul>
+  <p>PromptShot requests no host permissions, so it cannot access the content of the pages you visit beyond the single capture you trigger.</p>
+
+  <h2>Third parties</h2>
+  <p>None. PromptShot does not include third-party analytics, advertising, or tracking SDKs, and does not share data with anyone, because it does not collect any.</p>
+
+  <h2>Open source</h2>
+  <p>PromptShot is open source. You can read exactly what it does at <a href="https://github.com/kcperez/promptshot" target="_blank" rel="noopener">github.com/kcperez/promptshot</a>.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy ever changes, the updated version will be posted here with a new effective date.</p>
+
+  <h2>Contact</h2>
+  <p>Questions? Reach out at <a href="mailto:kevincastroperez@gmail.com">kevincastroperez@gmail.com</a>.</p>
+</main>
+
+<footer><div class="wrap footlinks"><a href="index.html">← Back to PromptShot</a></div></footer>
+</body>
+</html>

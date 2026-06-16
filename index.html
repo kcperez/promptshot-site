@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PromptShot - Full Page Screenshot for Claude Code, Cursor & Codex</title>
+<meta name="description" content="Full page screenshot in one click, built for AI coding agents. Captures the whole page and drops its file path on your clipboard. Paste straight into Claude Code, Codex, or Cursor." />
+<link rel="icon" type="image/png" href="icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0c0f; --bg2:#0e0f12; --panel:#15171d;
+    --line:#23262f; --line2:#2c303a;
+    --text:#e9ebf0; --muted:#9aa0ad; --faint:#6b7280;
+    --accent:#6ee7b7; --accent-ink:#06130d;
+    --r:14px; --maxw:1100px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .mono{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  nav{position:sticky;top:0;z-index:50;background:rgba(11,12,15,.72);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .nav-in{height:62px;display:flex;align-items:center;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.01em}
+  .logo{width:28px;height:28px;border-radius:7px;flex:0 0 auto;display:block}
+  .nav-links{display:flex;align-items:center;gap:26px}
+  .nav-links a{color:var(--muted);font-size:14px;transition:color .15s}
+  .nav-links a:hover{color:var(--text)}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;
+    border-radius:9px;padding:9px 16px;cursor:pointer;border:1px solid transparent;
+    transition:transform .06s ease,filter .15s ease}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--accent);color:var(--accent-ink)}
+  .btn-primary:hover{filter:brightness(1.06)}
+  .btn-ghost{background:transparent;color:var(--text);border-color:var(--line2)}
+  .btn-ghost:hover{border-color:var(--faint)}
+
+  .hero{position:relative;padding:72px 0 56px}
+  .hero::before{content:"";position:absolute;inset:0;z-index:-1;
+    background:radial-gradient(58% 48% at 70% 0%,rgba(110,231,183,.10),transparent 70%)}
+  .hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:52px;align-items:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);
+    border:1px solid var(--line2);border-radius:999px;padding:5px 12px;margin-bottom:20px}
+  .eyebrow b{color:var(--accent);font-weight:600}
+  h1{font-size:clamp(36px,4.8vw,54px);line-height:1.05;letter-spacing:-.03em;margin:0 0 16px;font-weight:600}
+  .sub{font-size:18px;color:var(--muted);max-width:44ch;margin:0 0 26px}
+  .hero-cta{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+  .hero-cta .btn{padding:12px 20px;font-size:15px}
+  .kbd{font-size:12.5px;color:var(--faint);margin-top:16px}
+  .kbd b{color:var(--muted);font-weight:500}
+
+  .demo{position:relative}
+  .browser{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);
+    overflow:hidden;box-shadow:0 30px 80px -34px rgba(0,0,0,.8)}
+  .browser-bar{display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid var(--line)}
+  .dot{width:10px;height:10px;border-radius:50%;background:#33373f}
+  .url{margin-left:8px;flex:1;height:21px;border-radius:6px;background:#0e1014;border:1px solid var(--line);
+    display:flex;align-items:center;padding:0 10px;font-size:11px;color:var(--faint)}
+  .viewport{position:relative;height:196px;background:linear-gradient(180deg,#101319,#0c0e12);overflow:hidden}
+  .skeleton{position:absolute;inset:0;padding:17px 19px;display:flex;flex-direction:column;gap:10px}
+  .sk{height:11px;border-radius:6px;background:#191c23}
+  .sk.big{height:25px;width:55%;background:#1d2129}
+  .sk.w70{width:70%}.sk.w40{width:40%}.sk.w85{width:85%}.sk.w60{width:60%}
+  .sk-row{display:flex;gap:10px;margin-top:5px}
+  .sk-card{flex:1;height:50px;border-radius:9px;background:#15181e;border:1px solid var(--line)}
+  /* realistic captured page inside the browser mock */
+  .page{position:absolute;inset:0;background:#f6f7f9;color:#0f1115;display:flex;flex-direction:column;font-family:"Geist",sans-serif;overflow:hidden}
+  .pg-nav{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid #e6e8ee;background:#fff}
+  .pg-brand{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#0f1115}
+  .pg-brand i{width:14px;height:14px;border-radius:4px;background:#0f1115;display:inline-block}
+  .pg-links{display:flex;gap:11px;font-size:9.5px;color:#5b6270}
+  .pg-btn{font-size:9px;font-weight:600;background:#0f1115;color:#fff;padding:5px 10px;border-radius:6px}
+  .pg-hero2{display:flex;gap:12px;padding:16px 14px 10px;align-items:center}
+  .pg-copy{flex:1;display:flex;flex-direction:column;gap:5px}
+  .pg-h1{font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.08;color:#0f1115}
+  .pg-sub{font-size:9.5px;color:#6b7280;line-height:1.4}
+  .pg-cta{display:flex;gap:7px;margin-top:5px}
+  .pg-pri{font-size:9px;font-weight:600;background:#0f1115;color:#fff;padding:5px 11px;border-radius:6px}
+  .pg-sec{font-size:9px;color:#0f1115;border:1px solid #d4d8df;padding:5px 11px;border-radius:6px}
+  .pg-img{width:118px;height:76px;object-fit:cover;border-radius:8px;border:1px solid #e6e8ee;flex:0 0 auto}
+  .pg-cards{display:flex;gap:8px;padding:2px 14px 0}
+  .pg-cards div{flex:1;height:30px;border-radius:7px;background:#fff;border:1px solid #e6e8ee}
+  .scan{position:absolute;left:0;right:0;height:46%;
+    background:linear-gradient(180deg,rgba(110,231,183,.14),rgba(110,231,183,0));
+    border-bottom:2px solid var(--accent);opacity:0}
+  .flash{position:absolute;inset:0;background:var(--accent);opacity:0}
+  .toast{position:absolute;left:50%;bottom:13px;transform:translateX(-50%) translateY(14px);
+    background:#0b0c0f;border:1px solid var(--line2);color:var(--accent);
+    font-size:12px;font-weight:500;padding:8px 13px;border-radius:9px;opacity:0;white-space:nowrap;
+    box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  .pipe{display:flex;justify-content:center;padding:9px 0;color:var(--faint)}
+  .pipe svg{width:19px;height:19px}
+  .term{background:#0a0b0e;border:1px solid var(--line2);border-radius:var(--r);
+    padding:14px 15px;font-size:12.5px;box-shadow:0 30px 80px -42px rgba(0,0,0,.8)}
+  .term-head{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+  .term-head .dot{width:8px;height:8px}
+  .term-head span{margin-left:5px;font-size:11px;color:var(--faint)}
+  .line{color:var(--muted);white-space:nowrap;overflow:hidden}
+  .prompt{color:var(--accent)} .typed{color:var(--text)} .path{color:var(--accent);opacity:0}
+  .caret{display:inline-block;width:7px;height:14px;background:var(--accent);vertical-align:-2px;margin-left:2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  @media (prefers-reduced-motion: no-preference){
+    .scan{animation:scan 7s ease-in-out infinite}
+    .flash{animation:flash 7s ease-in-out infinite}
+    .toast{animation:toast 7s ease-in-out infinite}
+    .path{animation:pathin 7s ease-in-out infinite}
+    @keyframes scan{0%,8%{opacity:0;top:-46%}12%{opacity:1;top:-46%}30%{opacity:1;top:100%}34%,100%{opacity:0;top:100%}}
+    @keyframes flash{0%,34%{opacity:0}37%{opacity:.5}44%{opacity:0}100%{opacity:0}}
+    @keyframes toast{0%,40%{opacity:0;transform:translateX(-50%) translateY(14px)}46%{opacity:1;transform:translateX(-50%) translateY(0)}78%{opacity:1;transform:translateX(-50%) translateY(0)}84%,100%{opacity:0;transform:translateX(-50%) translateY(8px)}}
+    @keyframes pathin{0%,55%{opacity:0}60%{opacity:1}100%{opacity:1}}
+  }
+
+  section{padding:60px 0}
+  .sec-head{margin:0 0 36px}
+  h2{font-size:clamp(26px,3.2vw,36px);line-height:1.1;letter-spacing:-.025em;margin:0 0 12px;font-weight:600}
+  .sec-head p{color:var(--muted);font-size:16px;margin:0;max-width:52ch}
+
+  .compat{padding:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .compat-in{display:flex;align-items:center;gap:12px 30px;flex-wrap:wrap;justify-content:center}
+  .compat-label{color:var(--faint);font-size:13px}
+  .chip{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:14px}
+  .chip svg{width:15px;height:15px;color:var(--accent)}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .step{background:var(--bg2);display:flex;flex-direction:column}
+  .step-vis{position:relative;height:152px;background:linear-gradient(180deg,#101319,#0c0e12);
+    border-bottom:1px solid var(--line);overflow:hidden;display:grid;place-items:center}
+  .step-body{padding:22px 24px}
+  .step .n{font-size:12px;color:var(--accent);font-weight:600;margin-bottom:10px;font-family:"Geist Mono",monospace}
+  .step h3{margin:0 0 7px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+  .step p{margin:0;color:var(--muted);font-size:14px}
+
+  /* step 1 visual: click the icon */
+  .v-click .toolbar{position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:6px;z-index:3}
+  .v-click .ico{width:20px;height:20px;border-radius:6px;background:#1b1f27;border:1px solid var(--line2)}
+  .v-click .ico.ps{background:linear-gradient(180deg,#16181d,#0b0c0f);border-color:var(--accent);
+    display:grid;place-items:center;box-shadow:0 0 0 0 rgba(110,231,183,.5)}
+  .v-click .ico.ps svg{width:13px;height:13px}
+  .v-click .cursor{position:absolute;right:6px;top:22px;color:#e9ebf0;z-index:4}
+  .v-click .cursor svg{width:15px;height:15px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.7))}
+  .v-click .mini-page{position:absolute;left:16px;right:16px;top:46px;bottom:16px;border-radius:8px;
+    background:#15181e;border:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+  .v-click .mini-page span{height:8px;border-radius:5px;background:#22262e}
+  .v-click .mini-page span:nth-child(1){width:50%}.v-click .mini-page span:nth-child(2){width:82%}.v-click .mini-page span:nth-child(3){width:64%}
+  .v-click .mini-scan{position:absolute;left:16px;right:16px;top:46px;height:34px;
+    background:linear-gradient(180deg,rgba(110,231,183,.18),transparent);border-bottom:2px solid var(--accent);opacity:0}
+
+  /* step 2 visual: path on clipboard */
+  .v-path .clip{display:flex;align-items:center;gap:9px;background:#0b0c0f;border:1px solid var(--line2);
+    border-radius:10px;padding:11px 12px;max-width:86%;box-shadow:0 14px 34px -14px rgba(0,0,0,.75)}
+  .v-path .clip svg{width:16px;height:16px;color:var(--accent);flex:0 0 auto}
+  .v-path .clip .p{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .v-path .clip .ok{font-size:9.5px;color:var(--accent);border:1px solid var(--accent);border-radius:5px;padding:1px 6px;flex:0 0 auto}
+
+  /* step 3 visual: terminal paste */
+  .v-term .mini-term{background:#0a0b0e;border:1px solid var(--line2);border-radius:9px;padding:12px 13px;
+    font-size:12px;max-width:86%;white-space:nowrap}
+  .v-term .mini-term .prompt{color:var(--accent)}
+  .v-term .mini-term .pp{color:var(--accent)}
+  .caret2{display:inline-block;width:6px;height:13px;background:var(--accent);vertical-align:-2px;margin-left:3px}
+
+  @media (prefers-reduced-motion: no-preference){
+    .v-click .ico.ps{animation:pspulse 3.2s ease-in-out infinite}
+    .v-click .cursor{animation:psclick 3.2s ease-in-out infinite}
+    .v-click .mini-scan{animation:psscan 3.2s ease-in-out infinite}
+    .caret2{animation:blink 1s steps(1) infinite}
+    @keyframes pspulse{0%,38%,100%{box-shadow:0 0 0 0 rgba(110,231,183,.55)}18%{box-shadow:0 0 0 7px rgba(110,231,183,0)}}
+    @keyframes psclick{0%,100%{transform:translate(0,0)}16%{transform:translate(-2px,-2px)}24%{transform:translate(0,0)}}
+    @keyframes psscan{0%,32%{opacity:0;transform:translateY(0)}46%{opacity:1;transform:translateY(0)}72%{opacity:1;transform:translateY(62px)}82%,100%{opacity:0;transform:translateY(62px)}}
+  }
+
+  .vals{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px}
+  .val{display:flex;flex-direction:column;gap:8px}
+  .val .vi{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+    background:rgba(110,231,183,.10);border:1px solid var(--line2)}
+  .val .vi svg{width:17px;height:17px;color:var(--accent)}
+  .val h3{margin:6px 0 0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .val p{margin:0;color:var(--muted);font-size:14px}
+  .val .perm-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px}
+  .perm{font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:6px;padding:2px 7px}
+
+  .center{text-align:center;margin-left:auto;margin-right:auto}
+  .benefits{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+  .brow{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 16px}
+  .brow .ck{width:20px;height:20px;flex:0 0 auto;color:var(--accent);margin-top:1px}
+  .brow div b{color:var(--text);font-weight:600}
+  .brow div span{color:var(--muted)}
+
+  .grow{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .gcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:9px}
+  .gi{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:rgba(110,231,183,.10);border:1px solid var(--line2)}
+  .gi img{width:18px;height:18px}
+  .gi svg{width:19px;height:19px;color:var(--accent)}
+  .gcard h3{margin:5px 0 0;font-size:16px;font-weight:600}
+  .gcard p{margin:0;color:var(--muted);font-size:13.5px;flex:1}
+  .gcard .btn{justify-content:center;margin-top:4px}
+  @media (max-width:860px){.grow{grid-template-columns:1fr}}
+
+  .price{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:740px}
+  .plan{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px}
+  .plan.pro{border-color:var(--accent);
+    background:radial-gradient(130% 90% at 100% 0%,rgba(110,231,183,.10),transparent 55%),var(--panel)}
+  .pname{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .pname b{font-size:16px;font-weight:600}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--accent-ink);background:var(--accent);border-radius:5px;padding:2px 7px}
+  .amt{font-size:34px;font-weight:600;letter-spacing:-.02em;margin:4px 0 2px}
+  .amt small{font-size:15px;color:var(--muted);font-weight:400}
+  .once{color:var(--faint);font-size:13px;margin-bottom:18px}
+  .feat{list-style:none;margin:0 0 22px;padding:0;display:flex;flex-direction:column;gap:10px}
+  .feat li{display:flex;gap:10px;font-size:14px;color:var(--muted)}
+  .feat .ic{width:17px;height:17px;color:var(--accent);flex:0 0 auto}
+  .plan .btn{width:100%;justify-content:center;padding:11px}
+
+  .trust-panel{background:radial-gradient(120% 100% at 0% 0%,rgba(110,231,183,.06),transparent 55%),var(--panel);
+    border:1px solid var(--line2);border-radius:18px;padding:36px 34px}
+  .trust-top{display:flex;align-items:center;gap:13px;margin-bottom:10px}
+  .shield{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;
+    background:rgba(110,231,183,.10);border:1px solid var(--line2);flex:0 0 auto}
+  .shield svg{width:20px;height:20px;color:var(--accent)}
+  .trust-panel h2{margin:0;font-size:clamp(23px,2.9vw,31px)}
+  .trust-panel .blurb{color:var(--muted);font-size:15.5px;max-width:64ch;margin:8px 0 0}
+  .perms{display:grid;grid-template-columns:1fr 1fr;gap:16px 28px;margin-top:26px}
+  .permx{display:flex;flex-direction:column;gap:5px}
+  .permx .k{color:var(--accent);font-size:13px}
+  .permx .d{color:var(--muted);font-size:14px}
+  .trust-foot{margin-top:24px;padding-top:18px;border-top:1px solid var(--line);display:flex;gap:9px;flex-wrap:wrap}
+  .trust-foot span{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:7px;padding:4px 10px}
+  @media (max-width:860px){.perms{grid-template-columns:1fr}}
+
+  .faq{max-width:720px}
+  details{border-bottom:1px solid var(--line);padding:18px 0}
+  summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:16px;font-weight:500}
+  summary::-webkit-details-marker{display:none}
+  summary .pm{color:var(--faint);transition:transform .2s;flex:0 0 auto}
+  details[open] summary .pm{transform:rotate(45deg)}
+  details p{margin:12px 0 0;color:var(--muted);font-size:14.5px;max-width:62ch}
+
+  .final{text-align:center;padding:74px 0}
+  .final h2{margin-bottom:14px}
+  .final p{color:var(--muted);font-size:16px;margin:0 auto 24px;max-width:44ch}
+  .final .btn{padding:13px 24px;font-size:15px}
+  footer{border-top:1px solid var(--line);padding:30px 0;color:var(--faint);font-size:13px}
+  .foot-in{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none}}
+
+  @media (max-width:860px){
+    .hero-grid{grid-template-columns:1fr;gap:36px}
+    .steps,.vals,.price{grid-template-columns:1fr}
+    .nav-links{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="#">
+      <img class="logo" src="icon.png" alt="" />
+      PromptShot
+    </a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <a class="btn btn-primary" href="#install">Add to Chrome</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow"><b>For builders</b> on Claude Code, Codex &amp; Cursor</span>
+      <h1>Full-page screenshots, straight into your coding agent.</h1>
+      <p class="sub">One click grabs the full page and drops its file path on your clipboard. Paste it into your agent. No Downloads graveyard.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#install">Add to Chrome</a>
+        <a class="btn btn-ghost" href="#how">See how</a>
+      </div>
+      <p class="kbd">Click the icon or hit <b>⌥⇧S</b>. The path is copied before you switch windows.</p>
+    </div>
+
+    <div class="demo" aria-hidden="true">
+      <div class="browser">
+        <div class="browser-bar">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url mono">northwind.so</span>
+        </div>
+        <div class="viewport">
+          <div class="page">
+            <div class="pg-nav">
+              <span class="pg-brand"><i></i>Northwind</span>
+              <span class="pg-links"><span>Product</span><span>Customers</span><span>Pricing</span><span>Docs</span></span>
+              <span class="pg-btn">Start free</span>
+            </div>
+            <div class="pg-hero2">
+              <div class="pg-copy">
+                <div class="pg-h1">The workspace that ships itself.</div>
+                <div class="pg-sub">Plan, build, and launch product in one place. Loved by 4,000+ teams.</div>
+                <div class="pg-cta"><span class="pg-pri">Start free</span><span class="pg-sec">Book a demo</span></div>
+              </div>
+              <img class="pg-img" src="https://picsum.photos/seed/northwind-ui/300/200" alt="" />
+            </div>
+            <div class="pg-cards"><div></div><div></div><div></div></div>
+          </div>
+          <div class="scan"></div><div class="flash"></div>
+          <div class="toast mono">📋 path copied — ⌘V in your agent</div>
+        </div>
+      </div>
+      <div class="pipe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+      <div class="term mono">
+        <div class="term-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span>claude code</span></div>
+        <div class="line"><span class="prompt">&gt;</span> <span id="twCmd" class="typed"></span><span id="twPath" style="color:var(--accent)"></span><span class="caret"></span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="compat">
+  <div class="wrap compat-in">
+    <span class="compat-label mono">pipes straight into</span>
+    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 12h6M12 9v6"/></svg> Claude Code</span>
+    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9l6 6M15 9l-6 6"/></svg> Codex</span>
+    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5"/></svg> Cursor</span>
+    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg> any terminal agent</span>
+  </div>
+</div>
+
+<section id="benefits">
+  <div class="wrap">
+    <div class="sec-head center reveal"><h2>Why builders keep it pinned.</h2></div>
+    <div class="benefits reveal">
+      <div class="brow"><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><div><b>Fast &amp; simple.</b> <span>One click captures the entire page. No popup, no save dialog.</span></div></div>
+      <div class="brow"><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><div><b>Built for agents.</b> <span>Drops the file path straight into Claude Code, Codex, and Cursor.</span></div></div>
+      <div class="brow"><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><div><b>Private.</b> <span>No account, no servers. Nothing ever leaves your machine.</span></div></div>
+      <div class="brow"><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><div><b>Handles hard pages.</b> <span>Long scrolls, fixed headers, and sticky popups, all stitched cleanly.</span></div></div>
+      <div class="brow"><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><div><b>Free forever.</b> <span>The core pipe costs nothing. Pro adds per-project folders and annotation.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>Capture to paste, in one move.</h2>
+      <p>No popup, no save dialog, no second click. The reference is ready before you switch back to your editor.</p>
+    </div>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-vis v-click">
+          <div class="toolbar">
+            <span class="ico"></span><span class="ico"></span>
+            <span class="ico ps"><svg viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a2 2 0 012-2h1.7l1.1-2h6.4l1.1 2H19a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><circle cx="12" cy="13.2" r="3"/></svg></span>
+            <span class="cursor"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 2l6 17 2.3-6.7L19 10z"/></svg></span>
+          </div>
+          <div class="mini-page"><span></span><span></span><span></span></div>
+          <div class="mini-scan"></div>
+        </div>
+        <div class="step-body">
+          <div class="n">01</div>
+          <h3>Click the icon</h3>
+          <p>It scrolls and stitches the full page into one clean PNG. ⌥⇧S works too.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-vis v-path">
+          <div class="clip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M9 5H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-3"/></svg>
+            <span class="p mono">~/Downloads/agent-shots/shot.png</span>
+            <span class="ok mono">copied</span>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="n">02</div>
+          <h3>It's already copied</h3>
+          <p>The shot saves to one tidy folder and its path is copied to your clipboard automatically. Nothing to drag, nothing to hunt for.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-vis v-term">
+          <div class="mini-term mono"><span class="prompt">&gt;</span> use this as context <span class="pp">@shot.png</span><span class="caret2"></span></div>
+        </div>
+        <div class="step-body">
+          <div class="n">03</div>
+          <h3>Paste in your agent</h3>
+          <p>⌘V the path into Claude Code or Codex. It reads the image instantly.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>Free does the whole job.</h2>
+      <p>The pipe is free forever. Pay once when you want it wired into every project.</p>
+    </div>
+    <div class="price reveal">
+      <div class="plan">
+        <div class="pname"><b>Free</b></div>
+        <div class="amt">$0</div>
+        <div class="once">Forever. No account.</div>
+        <ul class="feat">
+          <li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> One-click full-page capture</li>
+          <li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Path copied to clipboard</li>
+          <li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Auto-cleaned folder + shortcut</li>
+        </ul>
+        <a class="btn btn-ghost" href="#install">Add to Chrome</a>
+      </div>
+      <div class="plan pro">
+        <div class="pname"><b>Pro</b><span class="badge">LIFETIME</span></div>
+        <div class="amt">$29 <small>once</small></div>
+        <div class="once">One payment. Every update.</div>
+        <ul class="feat">
+          <li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Everything in Free</li>
+          <li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Per-project folders, shots land in your repo</li>
+          <li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Annotate before send + batch collections</li>
+        </ul>
+        <a class="btn btn-primary" href="#install">Get Pro</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="trust">
+  <div class="wrap">
+    <div class="trust-panel reveal">
+      <div class="trust-top">
+        <span class="shield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.5-3 7.5-8 9-5-1.5-8-4.5-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <h2>It can't do anything sketchy.</h2>
+      </div>
+      <p class="blurb">No servers, no account, no tracking. Your screenshots never leave your machine, and PromptShot has zero access to the content of the pages you browse. Here is every permission it asks for, in plain English.</p>
+      <div class="perms">
+        <div class="permx"><span class="k mono">activeTab</span><span class="d">Reads the current tab only the moment you click. No standing access to your browsing.</span></div>
+        <div class="permx"><span class="k mono">scripting</span><span class="d">Scrolls and stitches the page into one full-page image, then puts it back.</span></div>
+        <div class="permx"><span class="k mono">downloads</span><span class="d">Saves the PNG and reads back its file path to copy onto your clipboard.</span></div>
+        <div class="permx"><span class="k mono">storage</span><span class="d">Remembers your settings and the handful of recent shots. Local only.</span></div>
+      </div>
+      <div class="trust-foot mono">
+        <span>No host permissions</span><span>No analytics</span><span>Works fully offline</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head reveal"><h2>Questions.</h2></div>
+    <div class="faq reveal">
+      <details open>
+        <summary>Why a path instead of the image? <span class="pm">+</span></summary>
+        <p>Terminal agents like Claude Code and Codex read files by path, not pasted pixels. PromptShot hands them the exact path so you skip the part that always breaks.</p>
+      </details>
+      <details>
+        <summary>Does anything get uploaded? <span class="pm">+</span></summary>
+        <p>No. No account, no server. Screenshots save to your own disk and the path is a local file path. PromptShot has no host access to the pages you visit.</p>
+      </details>
+      <details>
+        <summary>Which browsers work? <span class="pm">+</span></summary>
+        <p>Any Chromium browser: Chrome, Edge, Brave, and Arc. It is a standard Manifest V3 extension.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="final" id="install">
+  <div class="wrap">
+    <h2>Stop digging through Downloads.</h2>
+    <p>Capture, paste, build. Free to install, nothing to sign up for.</p>
+    <!-- TODO: replace with the Chrome Web Store listing URL after publishing -->
+    <a class="btn btn-primary" href="https://chromewebstore.google.com/" target="_blank" rel="noopener">Add to Chrome</a>
+  </div>
+</section>
+
+<section id="grow">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <h2>Help it grow.</h2>
+      <p style="margin:8px auto 0;max-width:48ch;text-align:center">PromptShot is a free, solo tool. Three seconds from you goes a long way.</p>
+    </div>
+    <div class="grow reveal">
+      <div class="gcard">
+        <span class="gi"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27l5.18 3.12-1.37-5.9 4.59-3.98-6.04-.52L12 4.5 9.64 9.99l-6.04.52 4.59 3.98-1.37 5.9z"/></svg></span>
+        <h3>Review it</h3>
+        <p>A Chrome Web Store review bumps it up the rankings so other builders find it.</p>
+        <!-- TODO: replace with the Chrome Web Store reviews URL after publishing -->
+        <a class="btn btn-ghost" href="https://chromewebstore.google.com/" target="_blank" rel="noopener">Leave a review</a>
+      </div>
+      <div class="gcard">
+        <span class="gi"><img src="https://cdn.simpleicons.org/github/6ee7b7" alt="GitHub" /></span>
+        <h3>Star the repo</h3>
+        <p>PromptShot is open source. A star helps it surface, and proves the code is clean.</p>
+        <a class="btn btn-ghost" href="https://github.com/kcperez/promptshot" target="_blank" rel="noopener">Star on GitHub</a>
+      </div>
+      <div class="gcard">
+        <span class="gi"><img src="https://cdn.simpleicons.org/x/6ee7b7" alt="X" /></span>
+        <h3>Follow along</h3>
+        <p>I build in public. Follow for updates, new Pro features, and the next tools.</p>
+        <a class="btn btn-ghost" href="https://x.com/_etherean">Follow on X</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-in">
+    <div class="brand" style="font-size:14px">
+      <img class="logo" src="icon.png" alt="" />
+      PromptShot
+    </div>
+    <span style="display:flex;gap:18px;align-items:center">
+      <a href="privacy.html" style="color:var(--muted)">Privacy</a>
+      <a href="https://github.com/kcperez/promptshot" target="_blank" rel="noopener" style="color:var(--muted)">GitHub</a>
+      <span>Built for people who build. © 2026</span>
+    </span>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+  // Hero terminal: cycle through real use cases so it's clearly not one trick.
+  (function () {
+    const cmdEl = document.getElementById('twCmd');
+    const pathEl = document.getElementById('twPath');
+    if (!cmdEl || !pathEl) return;
+    const cmds = [
+      'match this layout',
+      'use this as context',
+      'rebuild this section in React',
+      "what's misaligned here?",
+      'copy this color palette',
+    ];
+    const PATH = ' ~/Downloads/agent-shots/shot.png';
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { cmdEl.textContent = cmds[0]; pathEl.textContent = PATH; return; }
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    let i = 0;
+    (async function loop() {
+      while (true) {
+        const c = cmds[i % cmds.length];
+        for (let k = 0; k <= c.length; k++) { cmdEl.textContent = c.slice(0, k); await sleep(42); }
+        await sleep(260);
+        pathEl.textContent = PATH;
+        await sleep(1700);
+        pathEl.textContent = '';
+        for (let k = c.length; k >= 0; k--) { cmdEl.textContent = c.slice(0, k); await sleep(18); }
+        i++;
+        await sleep(320);
+      }
+    })();
+  })();
+</script>
+</body>
+</html>
